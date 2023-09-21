@@ -24,14 +24,14 @@ def _text_to_dict(text: str) -> dict:
             value = m.group("values")
 
             if section in ("COMMENT", "COMMENTS"):
-                results[section] = value
+                results[section] += " " + value.strip()
             # If a SECTION label has not appeared yet, add it as a new dict
             elif section not in results:
                 results[section] = _line_to_dict(value)
             # If a SECTION label appears more than once, convert it to a list of dicts instead
             elif not isinstance(results[section], list):
                 results[section] = [results[section]]
-                results[section].append(value)
+                results[section].append(_line_to_dict(value))
         # Append to COMMENTS section
         elif section in ("COMMENT", "COMMENTS"):
             results[section] += line.strip()
@@ -43,6 +43,35 @@ def _text_to_dict(text: str) -> dict:
                 results[section].update(_line_to_dict(line))
 
     return results
+
+
+def _add_section(section: str, d: dict, indent: int) -> str:
+    rest = " ".join([f"{key}={val}" for key, val in d.items()])
+    return f"{section: <{indent}}{rest}"
+
+
+def _assemble_selector_section(meta: dict, selector: int, indent: int) -> List[str]:
+    sections = []
+    for section, values in meta.items():
+        if isinstance(values, list):
+            sections.append(_add_section(section, values[selector - 1], indent))
+    return sections
+
+
+def _dict_to_text(meta: dict, indent: Optional[int] = None) -> str:
+    if not indent:
+        indent = max([len(s) for s in meta.keys()]) + 1
+    sections = []
+    for section, values in meta.items():
+        if isinstance(values, list) and section == "SELECTOR":
+            for selector in range(len(values)):
+                more = _assemble_selector_section(meta, selector + 1, indent)
+                sections.extend(more)
+        elif isinstance(values, list):
+            pass
+        else:
+            sections.append(_add_section(section, values, indent))
+    return "\n>>>>>".join(sections)
 
 
 def _get_indent(text: str) -> int:
