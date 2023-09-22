@@ -37,7 +37,6 @@ def test_wrap_unwrap_many(input):
 
 @given(cst.key_val_dict())
 def test_dict_to_line(input):
-    num_kvpairs = len(input)
     text = _dict_to_line(input)
     assert len(text.split()) == len(input)
 

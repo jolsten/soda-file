@@ -28,7 +28,6 @@ def _unwrap_sections(text: str) -> List[str]:
         if match := NEW_SECTION.match(line):
             sect = match.group("section")
             rest = match.group("rest").strip()
-            print(len(sect))
             out += f"\n{sect}{rest}"
         else:
             out += " " + line.strip()
@@ -62,27 +61,27 @@ class Section:
     @classmethod
     def from_unwrapped_line(cls, text: str) -> "Section":
         name, rest = text.split(maxsplit=1)
-        values = {}
-        for item in rest.split():
-            try:
-                key, val = item.split("=")
-                values[key] = val
-            except ValueError:
-                pass
+        values = _line_to_dict(rest)
         return cls(name=name, values=values)
 
-    def to_unwrapped_line(self, text: str) -> str:
-        kvpairs = " ".join([f"{key}={val}" for key, val in self.values])
-        return f"{self.name} {kvpairs}"
+    def to_unwrapped_line(self, indent: int) -> str:
+        return f"{self.name: <{indent}}{_dict_to_line(self.values)}"
 
 
 @dataclass
 class LabelFile:
     sections: List[Section] = field()
+    indent: Optional[int] = None
 
     @classmethod
     def from_text(cls, text: str) -> "LabelFile":
-        pass
+        unwrapped = _unwrap_sections(text)
+        sections = [Section.from_unwrapped_line(line) for line in unwrapped]
+        return cls(sections=sections)
 
     def to_text(self) -> str:
-        return ""
+        indent = self.indent
+        if indent is None:
+            indent = max([len(sect.name) for sect in self.sections]) + 1
+        text = _wrap_sections(self.sections, indent)
+        return "\n".join(text)
