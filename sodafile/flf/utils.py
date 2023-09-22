@@ -4,6 +4,12 @@ from textwrap import TextWrapper
 from typing import Dict, List, Optional
 
 NEW_SECTION = re.compile(r"^(?P<section>\S+\s+)(?P<rest>.*)$")
+LINE_SIZE = 79
+
+
+def _determine_indent(text: str) -> int:
+    _, rest = text.split(maxsplit=1)
+    return text.find(rest)
 
 
 def _line_to_dict(text: str) -> Dict[str, str]:
@@ -36,7 +42,7 @@ def _unwrap_sections(text: str) -> List[str]:
 
 def _wrap_sections(sections: List[str], indent: int) -> str:
     wrapper = TextWrapper(
-        width=79,
+        width=LINE_SIZE,
         subsequent_indent=" " * indent,
         break_on_hyphens=False,
         break_long_words=False,
@@ -44,12 +50,13 @@ def _wrap_sections(sections: List[str], indent: int) -> str:
 
     out = []
     for text in sections:
+        # print("section", text)
         section, rest = text.split(maxsplit=1)
         wrapper.initial_indent = f"{section: <{indent}}"
         wrapped = wrapper.wrap(rest)
         out.extend(wrapped)
 
-    out = [f"{line:<79}" for line in out]
+    out = [f"{line:<{LINE_SIZE}}" for line in out]
     return "\n".join(out) + "\n"
 
 
@@ -75,13 +82,15 @@ class LabelFile:
 
     @classmethod
     def from_text(cls, text: str) -> "LabelFile":
+        indent = _determine_indent(text)
         unwrapped = _unwrap_sections(text)
         sections = [Section.from_unwrapped_line(line) for line in unwrapped]
-        return cls(sections=sections)
+        return cls(sections=sections, indent=indent)
 
     def to_text(self) -> str:
         indent = self.indent
         if indent is None:
             indent = max([len(sect.name) for sect in self.sections]) + 1
-        text = _wrap_sections(self.sections, indent)
-        return "\n".join(text)
+        sections = [sect.to_unwrapped_line(indent) for sect in self.sections]
+        text = _wrap_sections(sections, indent)
+        return text
