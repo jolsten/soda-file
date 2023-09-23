@@ -1,5 +1,5 @@
 import pytest
-from hypothesis import strategies as st, given, assume
+from hypothesis import given, strategies as st, given, assume
 from sodafile.flf.utils import Section, LabelFile
 from sodafile.flf.utils import (
     _wrap_sections,
