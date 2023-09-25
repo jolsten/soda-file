@@ -2,6 +2,7 @@ from collections import UserDict
 from dataclasses import dataclass
 import pathlib
 from typing import Union, List, Tuple, Optional
+from .utils import dict_lower
 
 
 class SectionDict(UserDict):
@@ -42,47 +43,35 @@ class SectionDict(UserDict):
             self.data[section] = [self.data[section]]
             self.data[section].append(data)
 
-
-def parse_line(line: str) -> Tuple[str, dict]:
-    section, rest = line.split(" ", maxsplit=1)
-    if section in ("COMMENT", "COMMENTS"):
-        return section, rest.strip()
-    meta = {}
-    for kvp in rest.split():
-        try:
-            key, val = kvp.split("=", maxsplit=1)
-            meta[key] = val
-        except ValueError:
-            pass
-    return section, meta
+    def to_dict(self) -> dict:
+        return dict(self.data)
 
 
 @dataclass
 class FLFReader:
-    data: SectionDict
-
-    def get_section(self, name: str) -> Union[dict, List[dict], str]:
-        name = name.upper()
-        return self.data[name] if name in self.data else {}
-
-    def get_value(self, section: str, key: str, selector: Optional[int] = None) -> str:
-        sect = self.get_section(section.upper())
-        if selector:
-            sect = sect[selector - 1]
-        return sect.get(key.upper(), None)
-
-    def to_dict(self) -> dict:
-        return dict(self.data)
+    @staticmethod
+    def parse_line(line: str) -> Tuple[str, dict]:
+        section, rest = line.split(" ", maxsplit=1)
+        if section in ("COMMENT", "COMMENTS"):
+            return section, rest.strip()
+        meta = {}
+        for kvp in rest.split():
+            try:
+                key, val = kvp.split("=", maxsplit=1)
+                meta[key] = val
+            except ValueError:
+                pass
+        return section, meta
 
     @classmethod
-    def from_text(cls, text: str) -> "FLFReader":
+    def from_text(cls, text: str) -> dict:
         sect = SectionDict()
         current_section = None
         for line_no, line in enumerate(text.splitlines()):
             if line.strip() == "":  # Skip empty lines
                 continue
 
-            section, data = parse_line(line)
+            section, data = cls.parse_line(line)
 
             # If section is truthy, it is not empty string ""
             # so add it as a new section
@@ -93,27 +82,9 @@ class FLFReader:
             # so add key-val-pairs to current section
             else:
                 sect.update(current_section, data)
-        return cls(sect)
+        return dict_lower(sect.to_dict())
 
     @classmethod
-    def from_file(cls, path) -> "FLFReader":
+    def from_file(cls, path) -> dict:
         text = pathlib.Path(path).read_text(encoding="utf-8")
         return cls.from_text(text)
-
-    @property
-    def selectors(self) -> Tuple[int]:
-        if isinstance(self.data["SELECTOR"], list):
-            return tuple([int(data["NUMBER"]) for data in self.data["SELECTOR"]])
-        return (1,)
-
-    def selector(self, number: int) -> "FLFReader":
-        if number not in self.selectors:
-            raise ValueError(f"Invalid selector number: {number}")
-
-        new_data = SectionDict()
-        for section, data in self.data.items():
-            if isinstance(data, list):
-                new_data[section] = data[number - 1]
-            else:
-                new_data[section] = data
-        return new_data

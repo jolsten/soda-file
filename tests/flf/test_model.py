@@ -23,8 +23,10 @@ OUTPUT      TYPE=PCM
     [
         ("MSBF", None, "MSBF"),
         (None, "MSBF", "MSBF"),
+        ("MSBF", "MSBF", "MSBF"),
         ("LSBF", None, "LSBF"),
         (None, "LSBF", "LSBF"),
+        ("LSBF", "LSBF", "LSBF"),
     ],
 )
 def test_flf_byteorder(volume, file, result):
@@ -32,8 +34,7 @@ def test_flf_byteorder(volume, file, result):
         volume_byte=f"BYTE={volume}" if volume else "",
         file_byte=f"BYTE={file}" if file else "",
     )
-    print(text)
-    reader = FLFReader.from_text(text)
-    print(reader)
-    # flf = FLF(**reader.to_dict())
-    # assert flf.byte_order == result
+    data = FLFReader.from_text(text)
+    print(data)
+    flf = FLF(**data)
+    assert flf.byte_order == result

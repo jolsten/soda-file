@@ -1,10 +1,9 @@
 import pathlib
 from typing import Optional
-from typing_extensions import Annotated, NotRequired
-from pydantic import BaseModel, Field, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from sodafile.flf.reader import FLFReader
-from .typing import YYMMDD, HHMMSS, ByteOrder
+from .typing import YYMMDD, HHMMSS, ByteOrder, Frequency
 from .utils import dict_upper, dict_lower
 
 
@@ -15,7 +14,7 @@ class SectionBase(BaseModel):
 class Volume(SectionBase):
     creation: YYMMDD
     classification: str
-    byte: Optional[ByteOrder]
+    byte: Optional[ByteOrder] = None
 
 
 class File(SectionBase):
@@ -30,14 +29,14 @@ class File(SectionBase):
 class Event(SectionBase):
     date: YYMMDD
     vehicle: str
-    sput: str
+    sput: Optional[str] = None
 
 
 class Signal(SectionBase):
     uptime: HHMMSS
     downtime: HHMMSS
     designator: str
-    frequency: float
+    frequency: Frequency
 
 
 class Input(SectionBase):
@@ -81,6 +80,7 @@ class FLF(SectionBase):
     output: Output
     comments: Optional[str] = None
 
+    @property
     def byte_order(self) -> ByteOrder:
         if self.volume and self.volume.byte:
             return self.volume.byte
