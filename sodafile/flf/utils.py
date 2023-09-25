@@ -3,6 +3,21 @@ import re
 from textwrap import TextWrapper
 from typing import Dict, List, Optional
 
+
+def dict_lower(data: dict) -> dict:
+    for key, val in data.items():
+        if isinstance(val, dict):
+            data[key] = dict_lower(val)
+    return {k.lower(): v for k, v in data.items()}
+
+
+def dict_upper(data: dict) -> dict:
+    for key, val in data.items():
+        if isinstance(val, dict):
+            data[key] = dict_lower(val)
+    return {k.upper(): v for k, v in data.items()}
+
+
 NEW_SECTION = re.compile(r"^(?P<section>\S+\s+)(?P<rest>.*)$")
 LINE_SIZE = 79
 
@@ -50,12 +65,12 @@ def _wrap_sections(sections: List[str], indent: int) -> str:
 
     out = []
     for text in sections:
-        # print("section", text)
         section, rest = text.split(maxsplit=1)
         wrapper.initial_indent = f"{section: <{indent}}"
         wrapped = wrapper.wrap(rest)
         out.extend(wrapped)
 
+    # Pad each line to desired line size with whitespace
     out = [f"{line:<{LINE_SIZE}}" for line in out]
     return "\n".join(out) + "\n"
 
