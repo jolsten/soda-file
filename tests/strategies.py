@@ -21,7 +21,7 @@ def section_names(draw, sections: List[str] = SECTIONS):
 
 
 @st.composite
-def keys(draw, min_size: int = 3, max_size: int = 10):
+def keys(draw, min_size: int = 3, max_size: int = 10, case: str = "upper"):
     x = draw(
         st.text(
             alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ"),
@@ -29,11 +29,16 @@ def keys(draw, min_size: int = 3, max_size: int = 10):
             max_size=max_size,
         )
     )
-    return x.upper()
+    if case == "upper":
+        return x.upper()
+    elif case == "lower":
+        return x.lower()
+    else:
+        raise ValueError
 
 
 @st.composite
-def values(draw, min_size: int = 1, max_size: int = 20):
+def values(draw, min_size: int = 1, max_size: int = 20, case: str = "upper"):
     x = draw(
         st.text(
             alphabet=st.sampled_from("ABCDEFGHIJKLMNOPQRSTUVWXYZ_-,"),
@@ -41,7 +46,12 @@ def values(draw, min_size: int = 1, max_size: int = 20):
             max_size=max_size,
         )
     )
-    return x.upper()
+    if case == "upper":
+        return x.upper()
+    elif case == "lower":
+        return x.lower()
+    else:
+        raise ValueError
 
 
 @st.composite
@@ -51,16 +61,33 @@ def key_val_pairs(
     max_key_size: int = 10,
     min_val_size: int = 1,
     max_val_size: int = 20,
+    case: str = "upper",
 ):
-    key = draw(keys(min_size=min_key_size, max_size=max_key_size)).upper()
-    val = draw(values(min_size=min_val_size, max_size=max_val_size)).upper()
+    key = draw(keys(min_size=min_key_size, max_size=max_key_size, case=case))
+    val = draw(values(min_size=min_val_size, max_size=max_val_size, case=case))
     kvp = f"{key}={val}"
     return kvp
 
 
 @st.composite
-def key_val_dict(draw, min_size: int = 1, max_size: int = 10):
-    return draw(st.dictionaries(keys(), values(), min_size=min_size, max_size=max_size))
+def key_val_dict(
+    draw,
+    min_size: int = 1,
+    max_size: int = 10,
+    min_key_size: int = 3,
+    max_key_size: int = 10,
+    min_val_size: int = 1,
+    max_val_size: int = 20,
+    case: str = "upper",
+):
+    return draw(
+        st.dictionaries(
+            keys(min_size=min_key_size, max_size=max_key_size, case=case),
+            values(min_size=min_val_size, max_size=max_val_size, case=case),
+            min_size=min_size,
+            max_size=max_size,
+        )
+    )
 
 
 @st.composite

@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from textwrap import TextWrapper
 from typing import Optional, Dict
 
+from sodafile.flf.utils import dict_upper
+
 
 def section_to_unwrapped_line(data: Dict[str, str]) -> str:
     return " ".join([f"{key}={val}" for key, val in data.items()])
@@ -14,6 +16,9 @@ class FLFWriter:
     indent: Optional[int] = None
 
     def write(self, flf_dict: dict) -> str:
+        # Ensure all dict keys are uppercase
+        flf_dict = dict_upper(flf_dict)
+
         if indent is None:
             indent = max([len(x) for x in flf_dict.keys()]) + 1
 
