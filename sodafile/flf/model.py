@@ -1,7 +1,6 @@
 import pathlib
-from typing import Optional
+from typing import Optional, List, Union
 from pydantic import BaseModel, ConfigDict, model_validator
-
 from sodafile.flf.reader import FLFReader
 from .typing import YYMMDD, HHMMSS, ByteOrder, Frequency
 from .utils import dict_upper, dict_lower
@@ -74,9 +73,9 @@ class FLF(SectionBase):
     event: Event
     signal: Signal
     input: Input
-    selector: Selector
-    processor: Processor
-    record: Record
+    selector: Union[Selector, List[Selector]]
+    processor: Union[Processor, List[Processor]]
+    record: Union[Record, List[Record]]
     output: Output
     comments: Optional[str] = None
 
