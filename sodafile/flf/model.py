@@ -1,9 +1,12 @@
 import pathlib
-from typing import Optional, List, Union
+from typing import List, Optional, Union
+
 from pydantic import BaseModel, ConfigDict, model_validator
-from sodafile.flf.reader import FLFReader
-from .typing import YYMMDD, HHMMSS, ByteOrder, Frequency
-from .utils import dict_upper, dict_lower
+
+from sodafile.flf.reader_old import FLFReader
+
+from .typing import HHMMSS, YYMMDD, ByteOrder, Frequency
+from .utils import dict_lower, dict_upper
 
 
 class SectionBase(BaseModel):

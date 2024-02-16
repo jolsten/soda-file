@@ -1,5 +1,7 @@
 import pytest
-from sodafile.flf.reader import FLFReader
+
+from sodafile.flf.reader_old import FLFReader
+
 from ..conftest import sample_files
 
 

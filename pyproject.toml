@@ -30,6 +30,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "hypothesis",
+    "mypy",
+    "ruff",
 ]
 [tool.setuptools]
 packages = ["sodafile"]
